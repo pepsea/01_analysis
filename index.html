@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peptide Molecular Weight Calculator</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --error: #dc2626;
+            --warning: #d97706;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            opacity: 0.85;
+            font-size: 1rem;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card h2 .icon {
+            font-size: 1.2rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            resize: vertical;
+            transition: border-color 0.2s;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .input-row {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .input-row .field {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: white;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 0.65rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .btn-example {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .btn-example:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .examples {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+        }
+
+        .hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.4rem;
+        }
+
+        /* Results */
+        #results {
+            display: none;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .result-item {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .result-item .label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .result-item .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 0.25rem;
+        }
+
+        .result-item .unit {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* Composition table */
+        .composition-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .composition-table th,
+        .composition-table td {
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .composition-table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .composition-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        .composition-table .mono {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .composition-table .right {
+            text-align: right;
+        }
+
+        /* Sequence display */
+        .sequence-display {
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            background: #f1f5f9;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            line-height: 1.8;
+            margin-top: 0.5rem;
+        }
+
+        .sequence-display .pos-marker {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            vertical-align: super;
+        }
+
+        /* Error / validation */
+        .message {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-top: 0.75rem;
+            display: none;
+        }
+
+        .message.error {
+            background: #fef2f2;
+            color: var(--error);
+            border: 1px solid #fecaca;
+        }
+
+        .message.warning {
+            background: #fffbeb;
+            color: var(--warning);
+            border: 1px solid #fde68a;
+        }
+
+        /* Collapsible */
+        .collapsible-header {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapsible-header .arrow {
+            transition: transform 0.2s;
+            font-size: 0.8rem;
+        }
+
+        .collapsible-header.open .arrow {
+            transform: rotate(90deg);
+        }
+
+        .collapsible-body {
+            display: none;
+            margin-top: 0.75rem;
+        }
+
+        .collapsible-body.open {
+            display: block;
+        }
+
+        /* Charge states */
+        .charge-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .charge-table th,
+        .charge-table td {
+            padding: 0.4rem 0.75rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .charge-table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.4rem; }
+            .result-grid { grid-template-columns: 1fr 1fr; }
+            .input-row { flex-direction: column; }
+        }
+
+        /* Toggle switch for mass type */
+        .toggle-group {
+            display: inline-flex;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .toggle-group input[type="radio"] {
+            display: none;
+        }
+
+        .toggle-group label {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: white;
+            margin: 0;
+            transition: all 0.2s;
+        }
+
+        .toggle-group input[type="radio"]:checked + label {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Bar chart for composition */
+        .bar-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .bar {
+            height: 16px;
+            background: var(--primary);
+            border-radius: 3px;
+            min-width: 2px;
+            transition: width 0.3s;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Peptide Molecular Weight Calculator</h1>
+    <p>Calculate molecular weight, amino acid composition, and charge states for peptide sequences</p>
+</header>
+
+<div class="container">
+    <!-- Input Section -->
+    <div class="card">
+        <h2><span class="icon">&#9874;</span> Input Sequence</h2>
+        <label for="sequence">Enter peptide sequence (one-letter amino acid codes)</label>
+        <textarea id="sequence" placeholder="e.g. ACDEFGHIKLMNPQRSTVWY" spellcheck="false"></textarea>
+        <div class="hint">
+            Accepts standard one-letter amino acid codes (A-Z). FASTA headers (lines starting with &gt;) are ignored.
+            Spaces, numbers, and newlines are automatically removed.
+        </div>
+        <div id="validationMsg" class="message error"></div>
+
+        <div class="input-row">
+            <div class="field">
+                <label>Mass Type</label>
+                <div class="toggle-group">
+                    <input type="radio" name="massType" id="massAvg" value="average" checked>
+                    <label for="massAvg">Average</label>
+                    <input type="radio" name="massType" id="massMono" value="monoisotopic">
+                    <label for="massMono">Monoisotopic</label>
+                </div>
+            </div>
+            <div class="field">
+                <label for="chargeSelect">Max charge state (m/z)</label>
+                <select id="chargeSelect">
+                    <option value="3">+1 to +3</option>
+                    <option value="5" selected>+1 to +5</option>
+                    <option value="8">+1 to +8</option>
+                    <option value="10">+1 to +10</option>
+                </select>
+            </div>
+            <div class="btn-row" style="align-self:flex-end;">
+                <button class="btn-primary" onclick="calculate()">Calculate</button>
+                <button class="btn-secondary" onclick="clearAll()">Clear</button>
+            </div>
+        </div>
+
+        <div class="examples">
+            <span style="font-size:0.85rem; color:var(--text-muted); margin-right:0.25rem;">Examples:</span>
+            <button class="btn-example" onclick="loadExample('insulin')">Insulin B-chain</button>
+            <button class="btn-example" onclick="loadExample('oxytocin')">Oxytocin</button>
+            <button class="btn-example" onclick="loadExample('angiotensin')">Angiotensin II</button>
+            <button class="btn-example" onclick="loadExample('bradykinin')">Bradykinin</button>
+            <button class="btn-example" onclick="loadExample('glucagon')">Glucagon</button>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results">
+        <!-- Summary -->
+        <div class="card">
+            <h2><span class="icon">&#9878;</span> Results Summary</h2>
+            <div class="result-grid">
+                <div class="result-item">
+                    <div class="label">Molecular Weight</div>
+                    <div class="value" id="resMW">-</div>
+                    <div class="unit">Da</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">Number of Residues</div>
+                    <div class="value" id="resLen">-</div>
+                    <div class="unit">amino acids</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">Molecular Formula</div>
+                    <div class="value" id="resFormula" style="font-size:1rem;">-</div>
+                    <div class="unit">&nbsp;</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">Isoelectric Point (pI)</div>
+                    <div class="value" id="resPI">-</div>
+                    <div class="unit">&nbsp;</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cleaned Sequence -->
+        <div class="card">
+            <h2 class="collapsible-header" onclick="toggleSection(this)">
+                <span><span class="icon">&#128196;</span> Parsed Sequence</span>
+                <span class="arrow">&#9654;</span>
+            </h2>
+            <div class="collapsible-body">
+                <div id="seqDisplay" class="sequence-display"></div>
+            </div>
+        </div>
+
+        <!-- Charge States (m/z) -->
+        <div class="card">
+            <h2 class="collapsible-header" onclick="toggleSection(this)">
+                <span><span class="icon">&#9889;</span> Charge States (m/z)</span>
+                <span class="arrow">&#9654;</span>
+            </h2>
+            <div class="collapsible-body">
+                <table class="charge-table" id="chargeTable">
+                    <thead>
+                        <tr><th>Charge (z)</th><th>[M+zH]<sup>z+</sup> (m/z)</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Amino Acid Composition -->
+        <div class="card">
+            <h2 class="collapsible-header open" onclick="toggleSection(this)">
+                <span><span class="icon">&#128202;</span> Amino Acid Composition</span>
+                <span class="arrow" style="transform:rotate(90deg)">&#9654;</span>
+            </h2>
+            <div class="collapsible-body open">
+                <table class="composition-table" id="compTable">
+                    <thead>
+                        <tr>
+                            <th>Residue</th>
+                            <th>Name</th>
+                            <th class="right">Count</th>
+                            <th class="right">% (mol)</th>
+                            <th class="right">Mass Contribution (Da)</th>
+                            <th style="width:120px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    Peptide Molecular Weight Calculator &mdash;
+    Masses from <a href="https://education.expasy.org/student_projects/isotopident/htdocs/aa-list.html" target="_blank" rel="noopener">ExPASy</a> and NIST.
+    Water mass added for intact peptide (H-...-OH).
+</footer>
+
+<script>
+// =========================================================
+// Amino Acid Data
+// Residue masses (without water) for average and monoisotopic
+// Average masses from ExPASy, monoisotopic from NIST
+// =========================================================
+const aminoAcids = {
+    A: { name: "Alanine",        avg: 71.0788,  mono: 71.03711,  formula: {C:3, H:5, N:1, O:1, S:0} },
+    R: { name: "Arginine",       avg: 156.1875, mono: 156.10111, formula: {C:6, H:12,N:4, O:1, S:0} },
+    N: { name: "Asparagine",     avg: 114.1038, mono: 114.04293, formula: {C:4, H:6, N:2, O:2, S:0} },
+    D: { name: "Aspartic Acid",  avg: 115.0886, mono: 115.02694, formula: {C:4, H:5, N:1, O:3, S:0} },
+    C: { name: "Cysteine",       avg: 103.1388, mono: 103.00919, formula: {C:3, H:5, N:1, O:1, S:1} },
+    E: { name: "Glutamic Acid",  avg: 129.1155, mono: 129.04259, formula: {C:5, H:7, N:1, O:3, S:0} },
+    Q: { name: "Glutamine",      avg: 128.1307, mono: 128.05858, formula: {C:5, H:8, N:2, O:2, S:0} },
+    G: { name: "Glycine",        avg: 57.0519,  mono: 57.02146,  formula: {C:2, H:3, N:1, O:1, S:0} },
+    H: { name: "Histidine",      avg: 137.1411, mono: 137.05891, formula: {C:6, H:7, N:3, O:1, S:0} },
+    I: { name: "Isoleucine",     avg: 113.1594, mono: 113.08406, formula: {C:6, H:11,N:1, O:1, S:0} },
+    L: { name: "Leucine",        avg: 113.1594, mono: 113.08406, formula: {C:6, H:11,N:1, O:1, S:0} },
+    K: { name: "Lysine",         avg: 128.1741, mono: 128.09496, formula: {C:6, H:12,N:2, O:1, S:0} },
+    M: { name: "Methionine",     avg: 131.1926, mono: 131.04049, formula: {C:5, H:9, N:1, O:1, S:1} },
+    F: { name: "Phenylalanine",  avg: 147.1766, mono: 147.06841, formula: {C:9, H:9, N:1, O:1, S:0} },
+    P: { name: "Proline",        avg: 97.1167,  mono: 97.05276,  formula: {C:5, H:7, N:1, O:1, S:0} },
+    S: { name: "Serine",         avg: 87.0782,  mono: 87.03203,  formula: {C:3, H:5, N:1, O:2, S:0} },
+    T: { name: "Threonine",      avg: 101.1051, mono: 101.04768, formula: {C:4, H:7, N:1, O:2, S:0} },
+    W: { name: "Tryptophan",     avg: 186.2132, mono: 186.07931, formula: {C:11,H:10,N:2, O:1, S:0} },
+    Y: { name: "Tyrosine",       avg: 163.1760, mono: 163.06333, formula: {C:9, H:9, N:1, O:2, S:0} },
+    V: { name: "Valine",         avg: 99.1326,  mono: 99.06841,  formula: {C:5, H:9, N:1, O:1, S:0} }
+};
+
+// Rare / ambiguous codes
+const ambiguousCodes = {
+    B: "Asx (D or N)",
+    Z: "Glx (E or Q)",
+    X: "Unknown",
+    J: "Xle (I or L)",
+    U: "Selenocysteine",
+    O: "Pyrrolysine"
+};
+
+// Water: H2O added once for intact peptide (N-term H + C-term OH)
+const water = { avg: 18.01524, mono: 18.01056 };
+
+// Proton mass for m/z calculation
+const protonMass = 1.00728;
+
+// pKa values for pI calculation
+const pKa = {
+    nTerm: 9.69,   // NH2 terminus
+    cTerm: 2.34,   // COOH terminus
+    D: 3.65,
+    E: 4.25,
+    C: 8.18,
+    Y: 10.07,
+    H: 6.00,
+    K: 10.53,
+    R: 12.48
+};
+
+// =========================================================
+// Examples
+// =========================================================
+const examples = {
+    insulin:     "FVNQHLCGSHLVEALYLVCGERGFFYTPKT",
+    oxytocin:    "CYIQNCPLG",
+    angiotensin: "DRVYIHPF",
+    bradykinin:  "RPPGFSPFR",
+    glucagon:    "HSQGTFTSDYSKYLDSRRAQDFVQWLMNT"
+};
+
+function loadExample(name) {
+    document.getElementById("sequence").value = examples[name];
+    calculate();
+}
+
+// =========================================================
+// Parsing & Validation
+// =========================================================
+function parseSequence(raw) {
+    // Remove FASTA header lines
+    let lines = raw.split("\n");
+    let filtered = lines.filter(l => !l.trim().startsWith(">"));
+    // Remove spaces, digits, dashes, asterisks, newlines
+    let cleaned = filtered.join("").replace(/[\s\d\-\*\.]/g, "").toUpperCase();
+    return cleaned;
+}
+
+function validate(seq) {
+    if (seq.length === 0) return { valid: false, msg: "Please enter a peptide sequence." };
+    let invalid = [];
+    let warnings = [];
+    for (let ch of seq) {
+        if (!aminoAcids[ch]) {
+            if (ambiguousCodes[ch]) {
+                warnings.push(`'${ch}' (${ambiguousCodes[ch]}) is ambiguous and excluded from calculation.`);
+            } else {
+                invalid.push(ch);
+            }
+        }
+    }
+    if (invalid.length > 0) {
+        let unique = [...new Set(invalid)];
+        return { valid: false, msg: `Invalid character(s): ${unique.join(", ")}. Use standard one-letter amino acid codes.` };
+    }
+    // Filter out ambiguous
+    let validSeq = seq.split("").filter(ch => aminoAcids[ch]).join("");
+    if (validSeq.length === 0) return { valid: false, msg: "No valid amino acid residues found." };
+    return { valid: true, sequence: validSeq, warnings };
+}
+
+// =========================================================
+// Calculations
+// =========================================================
+function calcMW(seq, type) {
+    let mass = water[type];
+    for (let ch of seq) {
+        mass += aminoAcids[ch][type];
+    }
+    return mass;
+}
+
+function calcFormula(seq) {
+    let formula = { C: 0, H: 2, N: 0, O: 1, S: 0 }; // start with water (H2O)
+    for (let ch of seq) {
+        let f = aminoAcids[ch].formula;
+        formula.C += f.C;
+        formula.H += f.H;
+        formula.N += f.N;
+        formula.O += f.O;
+        formula.S += f.S;
+    }
+    return formula;
+}
+
+function formulaToString(f) {
+    let parts = [];
+    for (let elem of ["C", "H", "N", "O", "S"]) {
+        if (f[elem] > 0) {
+            parts.push(elem + (f[elem] > 1 ? f[elem] : ""));
+        }
+    }
+    return parts.join("");
+}
+
+function calcComposition(seq, type) {
+    let counts = {};
+    for (let ch of seq) {
+        counts[ch] = (counts[ch] || 0) + 1;
+    }
+    let results = [];
+    let total = seq.length;
+    for (let [code, count] of Object.entries(counts)) {
+        results.push({
+            code,
+            name: aminoAcids[code].name,
+            count,
+            percent: (count / total * 100),
+            massContribution: count * aminoAcids[code][type]
+        });
+    }
+    results.sort((a, b) => b.count - a.count);
+    return results;
+}
+
+function calcChargeStates(mw, maxCharge) {
+    let states = [];
+    for (let z = 1; z <= maxCharge; z++) {
+        states.push({
+            z,
+            mz: (mw + z * protonMass) / z
+        });
+    }
+    return states;
+}
+
+// Isoelectric point calculation using bisection method
+function calcPI(seq) {
+    let counts = {};
+    for (let ch of seq) {
+        counts[ch] = (counts[ch] || 0) + 1;
+    }
+
+    function chargeAtPH(pH) {
+        // Positive charges: N-term, K, R, H
+        let charge = 0;
+        // N-terminus
+        charge += 1 / (1 + Math.pow(10, pH - pKa.nTerm));
+        // C-terminus
+        charge -= 1 / (1 + Math.pow(10, pKa.cTerm - pH));
+        // Side chains
+        const posResidues = ['K', 'R', 'H'];
+        const negResidues = ['D', 'E', 'C', 'Y'];
+
+        for (let r of posResidues) {
+            if (counts[r]) {
+                charge += counts[r] / (1 + Math.pow(10, pH - pKa[r]));
+            }
+        }
+        for (let r of negResidues) {
+            if (counts[r]) {
+                charge -= counts[r] / (1 + Math.pow(10, pKa[r] - pH));
+            }
+        }
+        return charge;
+    }
+
+    // Bisection between pH 0 and 14
+    let low = 0, high = 14;
+    for (let i = 0; i < 100; i++) {
+        let mid = (low + high) / 2;
+        let c = chargeAtPH(mid);
+        if (c > 0) {
+            low = mid;
+        } else {
+            high = mid;
+        }
+    }
+    return (low + high) / 2;
+}
+
+// =========================================================
+// UI
+// =========================================================
+function calculate() {
+    let raw = document.getElementById("sequence").value;
+    let msgEl = document.getElementById("validationMsg");
+    let resultsEl = document.getElementById("results");
+    msgEl.style.display = "none";
+    msgEl.className = "message error";
+
+    let parsed = parseSequence(raw);
+    let result = validate(parsed);
+
+    if (!result.valid) {
+        msgEl.textContent = result.msg;
+        msgEl.style.display = "block";
+        resultsEl.style.display = "none";
+        return;
+    }
+
+    if (result.warnings && result.warnings.length > 0) {
+        msgEl.textContent = result.warnings.join(" ");
+        msgEl.className = "message warning";
+        msgEl.style.display = "block";
+    }
+
+    let seq = result.sequence;
+    let type = document.querySelector('input[name="massType"]:checked').value === "monoisotopic" ? "mono" : "avg";
+    let maxCharge = parseInt(document.getElementById("chargeSelect").value);
+
+    // MW
+    let mw = calcMW(seq, type);
+    document.getElementById("resMW").textContent = mw.toFixed(4);
+
+    // Length
+    document.getElementById("resLen").textContent = seq.length;
+
+    // Formula
+    let formula = calcFormula(seq);
+    document.getElementById("resFormula").innerHTML = formulaToHTML(formula);
+
+    // pI
+    let pi = calcPI(seq);
+    document.getElementById("resPI").textContent = pi.toFixed(2);
+
+    // Sequence display with position markers
+    let seqHTML = "";
+    for (let i = 0; i < seq.length; i++) {
+        if (i > 0 && i % 10 === 0) {
+            seqHTML += `<span class="pos-marker">${i}</span> `;
+        }
+        seqHTML += seq[i];
+    }
+    seqHTML += `<span class="pos-marker"> ${seq.length}</span>`;
+    document.getElementById("seqDisplay").innerHTML = seqHTML;
+
+    // Charge states table
+    let charges = calcChargeStates(mw, maxCharge);
+    let chargeTbody = document.querySelector("#chargeTable tbody");
+    chargeTbody.innerHTML = "";
+    for (let c of charges) {
+        let tr = document.createElement("tr");
+        tr.innerHTML = `<td>+${c.z}</td><td>${c.mz.toFixed(4)}</td>`;
+        chargeTbody.appendChild(tr);
+    }
+
+    // Composition table
+    let comp = calcComposition(seq, type);
+    let compTbody = document.querySelector("#compTable tbody");
+    compTbody.innerHTML = "";
+    let maxCount = comp.length > 0 ? comp[0].count : 1;
+    for (let c of comp) {
+        let tr = document.createElement("tr");
+        let barWidth = Math.round((c.count / maxCount) * 100);
+        tr.innerHTML = `
+            <td class="mono">${c.code}</td>
+            <td>${c.name}</td>
+            <td class="right">${c.count}</td>
+            <td class="right">${c.percent.toFixed(1)}%</td>
+            <td class="right">${c.massContribution.toFixed(2)}</td>
+            <td><div class="bar-container"><div class="bar" style="width:${barWidth}px"></div></div></td>
+        `;
+        compTbody.appendChild(tr);
+    }
+
+    resultsEl.style.display = "block";
+    resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function formulaToHTML(f) {
+    let parts = [];
+    for (let elem of ["C", "H", "N", "O", "S"]) {
+        if (f[elem] > 0) {
+            parts.push(elem + (f[elem] > 1 ? `<sub>${f[elem]}</sub>` : ""));
+        }
+    }
+    return parts.join("");
+}
+
+function clearAll() {
+    document.getElementById("sequence").value = "";
+    document.getElementById("validationMsg").style.display = "none";
+    document.getElementById("results").style.display = "none";
+}
+
+function toggleSection(header) {
+    header.classList.toggle("open");
+    let body = header.nextElementSibling;
+    body.classList.toggle("open");
+}
+
+// Allow Ctrl+Enter or Enter in textarea to calculate
+document.getElementById("sequence").addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        calculate();
+    }
+});
+</script>
+
+</body>
+</html>
