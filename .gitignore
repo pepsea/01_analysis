@@ -1,3 +1,10 @@
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+
+# 論文PDF（サイズが大きいためgit管理外）
+papers/*.pdf
+
+# 抽出テキスト・プロンプト（一時生成物）
+summaries/*_extracted.txt
+summaries/*_prompt.txt
